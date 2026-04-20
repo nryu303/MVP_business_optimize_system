@@ -1,0 +1,51 @@
+// MVP Business Optimize System - Prisma schema
+// MS2: User + Case only. Other models added in later milestones.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum CaseStatus {
+  PREPARING   // 準備中
+  RUNNING     // 配信中
+  COMPLETED   // 完了
+  STOPPED     // 停止
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  name         String
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  cases Case[]
+
+  @@map("users")
+}
+
+model Case {
+  id        String     @id @default(cuid())
+  name      String
+  sponsor   String
+  genre     String?
+  startDate DateTime?  @map("start_date")
+  endDate   DateTime?  @map("end_date")
+  status    CaseStatus @default(PREPARING)
+  memo      String?
+  ownerId   String     @map("owner_id")
+  owner     User       @relation(fields: [ownerId], references: [id])
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  @@index([ownerId])
+  @@index([status])
+  @@map("cases")
+}
