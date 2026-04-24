@@ -35,7 +35,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen grid place-items-center bg-[#f7f8fa]">
       <div className="w-full max-w-sm bg-white shadow rounded-lg p-8 border border-gray-200">
-        <h1 className="text-2xl font-bold text-center mb-6 tracking-wide">MIKOMERU MVP</h1>
+        <h1 className="text-2xl font-bold text-center mb-6 tracking-wide font-monoton">SALES Studio</h1>
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">メールアドレス</label>

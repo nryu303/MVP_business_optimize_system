@@ -45,6 +45,9 @@ Thumbs.db
 # misc
 *.tmp
 
+# LP dummy form received log (dev only)
+apps/lp/.received-log.jsonl
+
 # private negotiation / personal notes
 *_chatting listr.txt
 *_chat_history.txt
