@@ -100,7 +100,7 @@ const groups: Group[] = [
     title: "フォーム送信",
     items: [
       { href: "/send", label: "自動送信", icon: Icons.send },
-      { href: "/send/log", label: "自動送信ログ", icon: Icons.log, disabled: true, milestone: "MS5" },
+      { href: "/send/log", label: "自動送信ログ", icon: Icons.log },
       { href: "/templates/message", label: "送信文章テンプレート", icon: Icons.docText },
       { href: "/templates/sender", label: "送信元テンプレート", icon: Icons.user },
       { href: "/exclusions", label: "送信除外設定", icon: Icons.block },

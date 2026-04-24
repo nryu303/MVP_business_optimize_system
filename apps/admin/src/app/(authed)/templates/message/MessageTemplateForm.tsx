@@ -51,7 +51,8 @@ export default function MessageTemplateForm({ mode, charPresets, defaults }: Pro
   };
 
   const insertVar = (v: string) => {
-    setBody((b) => b + `{{${v}}}`);
+    const token = `{{${v}}}`;
+    setBody((b) => (preset !== null && b.length + token.length > preset ? b : b + token));
   };
 
   return (
@@ -106,7 +107,7 @@ export default function MessageTemplateForm({ mode, charPresets, defaults }: Pro
             value={body}
             onChange={(e) => setBody(e.target.value)}
             rows={14}
-            maxLength={10000}
+            maxLength={preset ?? 10000}
             className="w-full border border-gray-300 rounded px-3 py-2 text-sm font-mono"
           />
           <div className="mt-2 flex items-center justify-between text-xs">
