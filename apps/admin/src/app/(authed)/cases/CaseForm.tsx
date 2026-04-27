@@ -22,7 +22,8 @@ type Props = {
 
 function toDateInput(d: Date | null | undefined) {
   if (!d) return "";
-  return d.toISOString().slice(0, 10);
+  // JST 日付を返す (input[type=date] は YYYY-MM-DD 期待)
+  return new Date(d.getTime() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
 }
 
 export default function CaseForm({ action, initial, submitLabel = "保存" }: Props) {

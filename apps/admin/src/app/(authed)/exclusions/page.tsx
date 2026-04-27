@@ -1,5 +1,6 @@
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { prisma } from "@/lib/db";
+import { fmtJstDate } from "@/lib/date-jst";
 import { addBlacklistAction, deleteBlacklistAction } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -109,7 +110,7 @@ export default async function ExclusionsPage() {
                     </span>
                   </td>
                   <td className="px-3 py-2 text-xs text-gray-500 whitespace-nowrap">
-                    {e.createdAt.toISOString().slice(0, 10)}
+                    {fmtJstDate(e.createdAt)}
                   </td>
                   <td className="px-3 py-2 text-right">
                     <form action={delAction}>

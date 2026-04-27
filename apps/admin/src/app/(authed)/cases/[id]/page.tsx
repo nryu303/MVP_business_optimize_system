@@ -12,6 +12,7 @@ import {
   detachMessageTemplateAction,
   updateCaseTemplateSenderAction,
 } from "./link-actions";
+import { fmtJstDate } from "@/lib/date-jst";
 
 export const dynamic = "force-dynamic";
 
@@ -67,7 +68,7 @@ export default async function CaseDetailPage({ params }: { params: Params }) {
             <span className={`inline-block text-xs px-2 py-0.5 rounded ${STATUS_BADGE[c.status]}`}>
               {STATUS_LABEL[c.status]}
             </span>
-            <span>作成 {c.createdAt.toISOString().slice(0, 10)}</span>
+            <span>作成 {fmtJstDate(c.createdAt)}</span>
           </div>
         </div>
 

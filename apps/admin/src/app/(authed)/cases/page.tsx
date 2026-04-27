@@ -2,6 +2,7 @@ import Link from "next/link";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { prisma } from "@/lib/db";
 import { STATUS_BADGE, STATUS_LABEL, STATUS_OPTIONS } from "@/lib/case-status";
+import { fmtJstDate } from "@/lib/date-jst";
 import type { CaseStatus } from "@mvp/db";
 
 export const dynamic = "force-dynamic";
@@ -143,7 +144,7 @@ export default async function CasesPage({ searchParams }: { searchParams: Search
                   {formatDate(c.startDate)} ~ {formatDate(c.endDate)}
                 </td>
                 <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
-                  {c.updatedAt.toISOString().slice(0, 10)}
+                  {fmtJstDate(c.updatedAt)}
                 </td>
                 <td className="px-4 py-3 text-right">
                   <Link
@@ -163,6 +164,5 @@ export default async function CasesPage({ searchParams }: { searchParams: Search
 }
 
 function formatDate(d: Date | null) {
-  if (!d) return "—";
-  return d.toISOString().slice(0, 10);
+  return fmtJstDate(d);
 }

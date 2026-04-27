@@ -10,6 +10,7 @@ import {
   JOB_STATUS_BADGE,
   JOB_STATUS_LABEL,
 } from "@/lib/delivery-status";
+import { fmtJstDateTime } from "@/lib/date-jst";
 import DailyBar from "@/components/charts/DailyBar";
 import CaseBar from "@/components/charts/CaseBar";
 
@@ -90,7 +91,7 @@ export default async function HomePage() {
         </section>
         <section className="bg-white border border-gray-200 rounded p-5">
           <h2 className="text-sm font-semibold text-gray-600 mb-3">
-            ■ 案件別送信実績 (上位 8 案件)
+            ■ 案件別送信実績 (直近 30 日 / 上位 8 案件)
           </h2>
           {cases.length === 0 ? (
             <div className="h-[240px] flex items-center justify-center text-sm text-gray-400">
@@ -153,7 +154,7 @@ export default async function HomePage() {
                     </span>
                   </td>
                   <td className="px-3 py-2 text-xs text-gray-500 whitespace-nowrap">
-                    {j.createdAt.toISOString().slice(0, 16).replace("T", " ")}
+                    {fmtJstDateTime(j.createdAt)}
                   </td>
                 </tr>
               );

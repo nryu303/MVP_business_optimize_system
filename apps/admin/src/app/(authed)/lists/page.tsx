@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { prisma } from "@/lib/db";
+import { fmtJstDate } from "@/lib/date-jst";
 
 export const dynamic = "force-dynamic";
 
@@ -54,7 +55,7 @@ export default async function ListsPage() {
                 <td className="px-4 py-3">{l._count.companies}</td>
                 <td className="px-4 py-3 text-gray-600">{l._count.caseLists}</td>
                 <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
-                  {l.updatedAt.toISOString().slice(0, 10)}
+                  {fmtJstDate(l.updatedAt)}
                 </td>
               </tr>
             ))}

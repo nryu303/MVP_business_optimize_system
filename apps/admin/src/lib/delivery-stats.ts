@@ -1,5 +1,11 @@
 import type { DeliveryErrorType, DeliveryResultStatus } from "@mvp/db";
 import { prisma } from "./db";
+import {
+  jstDateKey,
+  startOfDayJstAgo,
+  startOfMonthJst,
+  startOfTodayJst,
+} from "./date-jst";
 
 /**
  * 配信結果の 5 分類 (xlsx MS2反映 D-3)
@@ -48,21 +54,9 @@ export type DashboardKpi = {
   newCasesThisMonth: number;
 };
 
-function startOfToday() {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-function startOfMonth() {
-  const d = new Date();
-  d.setDate(1);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
 export async function getDashboardKpi(): Promise<DashboardKpi> {
-  const today = startOfToday();
-  const month = startOfMonth();
+  const today = startOfTodayJst();
+  const month = startOfMonthJst();
 
   const [todayResults, monthResults, running, newCases] = await Promise.all([
     prisma.deliveryResult.groupBy({
@@ -108,14 +102,15 @@ export async function getDashboardKpi(): Promise<DashboardKpi> {
 export type DailyPoint = { date: string; success: number; failed: number; skipped: number };
 
 export async function getDailySeries(days = 14): Promise<DailyPoint[]> {
-  const from = new Date();
-  from.setHours(0, 0, 0, 0);
-  from.setDate(from.getDate() - (days - 1));
+  // JST における (days-1) 日前 0:00 を起点として集計開始
+  const from = startOfDayJstAgo(days - 1);
 
+  // attempted_at は timestamp without time zone (UTC 値が格納されている)
+  // +9 時間して JST 壁時計化してから日単位 truncate することで JST 日付ごとの集計を得る
   const rows = await prisma.$queryRaw<
     { d: Date; status: DeliveryResultStatus; count: bigint }[]
   >`
-    SELECT date_trunc('day', "attempted_at") AS d,
+    SELECT date_trunc('day', "attempted_at" + interval '9 hours') AS d,
            "status",
            COUNT(*)::bigint AS count
     FROM "delivery_results"
@@ -124,13 +119,16 @@ export async function getDailySeries(days = 14): Promise<DailyPoint[]> {
     ORDER BY d ASC
   `;
 
+  // 起点 (= JST 0:00) をベースに JST 日付キーを days 個用意
   const map = new Map<string, DailyPoint>();
   for (let i = 0; i < days; i++) {
-    const d = new Date(from);
-    d.setDate(d.getDate() + i);
-    const key = d.toISOString().slice(0, 10);
+    const d = new Date(from.getTime() + i * 24 * 60 * 60 * 1000);
+    const key = jstDateKey(d);
     map.set(key, { date: key, success: 0, failed: 0, skipped: 0 });
   }
+
+  // PG の date_trunc 結果は "JST 0:00 を表す UTC 同値の timestamp" として返るので
+  // toISOString().slice(0, 10) で直接 JST 日付キーが得られる
   for (const r of rows) {
     const key = r.d.toISOString().slice(0, 10);
     const entry = map.get(key);
@@ -152,25 +150,48 @@ export type CasePoint = {
   total: number;
 };
 
-export async function getCaseSeries(limit = 8): Promise<CasePoint[]> {
-  const jobs = await prisma.deliveryJob.findMany({
-    include: { case: true },
-  });
+export async function getCaseSeries(
+  limit = 8,
+  windowDays = 30,
+): Promise<CasePoint[]> {
+  // 直近 windowDays 日 (JST) に行われた送信結果のみを案件別に集計
+  const from = startOfDayJstAgo(windowDays - 1);
+
+  const rows = await prisma.$queryRaw<
+    {
+      case_id: string;
+      case_name: string;
+      status: DeliveryResultStatus;
+      count: bigint;
+    }[]
+  >`
+    SELECT j."case_id" AS case_id,
+           c."name" AS case_name,
+           r."status" AS status,
+           COUNT(*)::bigint AS count
+    FROM "delivery_results" r
+    JOIN "delivery_jobs" j ON j."id" = r."job_id"
+    JOIN "cases" c ON c."id" = j."case_id"
+    WHERE r."attempted_at" >= ${from}
+    GROUP BY j."case_id", c."name", r."status"
+  `;
+
   const byCaseId = new Map<string, CasePoint>();
-  for (const j of jobs) {
-    const existing = byCaseId.get(j.caseId) ?? {
-      caseId: j.caseId,
-      caseName: j.case.name,
+  for (const r of rows) {
+    const e = byCaseId.get(r.case_id) ?? {
+      caseId: r.case_id,
+      caseName: r.case_name,
       success: 0,
       failed: 0,
       skipped: 0,
       total: 0,
     };
-    existing.success += j.successCount;
-    existing.failed += j.failedCount;
-    existing.skipped += j.skippedCount;
-    existing.total += j.successCount + j.failedCount + j.skippedCount;
-    byCaseId.set(j.caseId, existing);
+    const n = Number(r.count);
+    if (r.status === "SUCCESS") e.success += n;
+    else if (r.status === "FAILED") e.failed += n;
+    else if (r.status === "SKIPPED") e.skipped += n;
+    e.total += n;
+    byCaseId.set(r.case_id, e);
   }
   return Array.from(byCaseId.values())
     .filter((c) => c.total > 0)

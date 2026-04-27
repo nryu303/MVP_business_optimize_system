@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { bucketOf, BUCKET_LABEL } from "@/lib/delivery-stats";
+import { fmtJstDate, fmtJstDateTime } from "@/lib/date-jst";
 import type { DeliveryResultStatus } from "@mvp/db";
 
 export const dynamic = "force-dynamic";
@@ -59,7 +60,7 @@ export async function GET(req: Request) {
   });
 
   const header = [
-    "受信時刻",
+    "受信時刻 (JST)",
     "案件",
     "リスト",
     "テンプレ",
@@ -82,7 +83,7 @@ export async function GET(req: Request) {
       header.join(","),
       ...rows.map((r) =>
         [
-          r.attemptedAt ? r.attemptedAt.toISOString() : "",
+          fmtJstDateTime(r.attemptedAt),
           r.job.case.name,
           r.job.list.name,
           r.job.messageTemplate.name,
@@ -100,7 +101,7 @@ export async function GET(req: Request) {
       ),
     ].join("\n");
 
-  const filename = `delivery-results-${new Date().toISOString().slice(0, 10)}.csv`;
+  const filename = `delivery-results-${fmtJstDate(new Date())}.csv`;
   return new Response(body, {
     status: 200,
     headers: {

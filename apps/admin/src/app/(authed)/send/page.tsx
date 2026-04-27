@@ -2,6 +2,7 @@ import Link from "next/link";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { prisma } from "@/lib/db";
 import { JOB_STATUS_BADGE, JOB_STATUS_LABEL } from "@/lib/delivery-status";
+import { fmtJstDate } from "@/lib/date-jst";
 
 export const dynamic = "force-dynamic";
 
@@ -74,7 +75,7 @@ export default async function SendJobsPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
-                    {j.createdAt.toISOString().slice(0, 10)}
+                    {fmtJstDate(j.createdAt)}
                   </td>
                 </tr>
               );

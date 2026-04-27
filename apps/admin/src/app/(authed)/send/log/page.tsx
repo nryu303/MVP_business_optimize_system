@@ -8,6 +8,7 @@ import {
   type ResultBucket,
 } from "@/lib/delivery-stats";
 import type { DeliveryResultStatus } from "@mvp/db";
+import { fmtJstDateTime } from "@/lib/date-jst";
 
 export const dynamic = "force-dynamic";
 
@@ -224,9 +225,7 @@ export default async function SendLogPage({
               return (
                 <tr key={r.id} className="border-b border-gray-100 hover:bg-gray-50">
                   <td className="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">
-                    {r.attemptedAt
-                      ? r.attemptedAt.toISOString().slice(0, 16).replace("T", " ")
-                      : "—"}
+                    {fmtJstDateTime(r.attemptedAt)}
                   </td>
                   <td className="px-3 py-2 text-xs">{r.job.case.name}</td>
                   <td className="px-3 py-2">{r.company.name}</td>

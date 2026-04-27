@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { prisma } from "@/lib/db";
+import { fmtJstDate } from "@/lib/date-jst";
 import { duplicateMessageTemplateAction, deleteMessageTemplateAction } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -79,7 +80,7 @@ export default async function MessageTemplatesPage({
                   <td className="px-4 py-3 text-gray-600 truncate max-w-xs">{t.subject}</td>
                   <td className="px-4 py-3 text-gray-600">{t.body.length}</td>
                   <td className="px-4 py-3 text-gray-500">
-                    {t.updatedAt.toISOString().slice(0, 10)}
+                    {fmtJstDate(t.updatedAt)}
                   </td>
                   <td className="px-4 py-3 text-right whitespace-nowrap">
                     <form action={dupAction} className="inline">

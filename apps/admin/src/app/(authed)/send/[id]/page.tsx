@@ -10,6 +10,7 @@ import {
 } from "@/lib/delivery-status";
 import { pauseJobAction, resumeJobAction, cancelJobAction } from "../actions";
 import AutoRefresh from "./AutoRefresh";
+import { fmtJstDateTime, fmtJstTime } from "@/lib/date-jst";
 
 export const dynamic = "force-dynamic";
 
@@ -132,15 +133,10 @@ export default async function SendJobDetailPage({
           </dd>
           <dt className="text-gray-500">メモ</dt>
           <dd>{job.note ?? "—"}</dd>
-          <dt className="text-gray-500">作成 / 開始 / 完了</dt>
+          <dt className="text-gray-500">作成 / 開始 / 完了 (JST)</dt>
           <dd className="text-xs text-gray-600">
-            {job.createdAt.toISOString().slice(0, 16).replace("T", " ")}
-            {job.startedAt
-              ? ` / ${job.startedAt.toISOString().slice(0, 16).replace("T", " ")}`
-              : " / —"}
-            {job.completedAt
-              ? ` / ${job.completedAt.toISOString().slice(0, 16).replace("T", " ")}`
-              : " / —"}
+            {fmtJstDateTime(job.createdAt)} / {fmtJstDateTime(job.startedAt)} /{" "}
+            {fmtJstDateTime(job.completedAt)}
           </dd>
         </dl>
       </section>
@@ -211,9 +207,7 @@ export default async function SendJobDetailPage({
                 </td>
                 <td className="px-3 py-2 text-xs text-gray-600">{r.attempts}</td>
                 <td className="px-3 py-2 text-xs text-gray-600 whitespace-nowrap">
-                  {r.attemptedAt
-                    ? r.attemptedAt.toISOString().slice(11, 19)
-                    : "—"}
+                  {fmtJstTime(r.attemptedAt)}
                 </td>
               </tr>
             ))}
