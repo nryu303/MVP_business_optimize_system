@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useTransition } from "react";
 import Link from "next/link";
 import { createDeliveryJobAction } from "../actions";
 
@@ -34,6 +34,7 @@ export default function NewJobClient({
   const [senderTemplateId, setSenderTemplateId] = useState("");
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, startSubmit] = useTransition();
 
   const selectedCase = useMemo(() => cases.find((c) => c.id === caseId), [cases, caseId]);
 
@@ -56,6 +57,7 @@ export default function NewJobClient({
   const selectedSender = senderTemplates.find((s) => s.id === senderTemplateId);
 
   const canSubmit =
+    !isSubmitting &&
     !!caseId &&
     !!listId &&
     !!messageTemplateId &&
@@ -63,13 +65,16 @@ export default function NewJobClient({
     selectedList.companyCount > 0 &&
     selectedList.companyCount <= MAX_COMPANIES;
 
-  const handleSubmit = async (formData: FormData) => {
+  const handleSubmit = (formData: FormData) => {
+    if (isSubmitting) return;
     setError(null);
-    try {
-      await createDeliveryJobAction(formData);
-    } catch (e) {
-      setError((e as Error).message);
-    }
+    startSubmit(async () => {
+      try {
+        await createDeliveryJobAction(formData);
+      } catch (e) {
+        setError((e as Error).message);
+      }
+    });
   };
 
   return (
@@ -214,9 +219,10 @@ export default function NewJobClient({
         <button
           type="submit"
           disabled={!canSubmit}
+          aria-busy={isSubmitting}
           className="px-5 py-2 rounded bg-[#1e5ab4] text-white hover:bg-[#17498f] disabled:opacity-50 text-sm"
         >
-          承認して実行
+          {isSubmitting ? "作成中..." : "承認して実行"}
         </button>
         <Link
           href="/send"
